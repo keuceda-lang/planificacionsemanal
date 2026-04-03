@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>7mo Grado - Planificación Semanal | Matemáticas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* (estilos iguales, no los repito para ahorrar espacio; son los mismos que ya tienes) */
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:'Inter',sans-serif; background:linear-gradient(145deg,#f0f9f4,#e2f0e9); color:#1e2f2c; min-height:100vh; padding:2rem 1.5rem; }
+        .container { max-width:1300px; margin:0 auto; }
+        .header { text-align:center; margin-bottom:2rem; }
+        .back-home { display:inline-flex; align-items:center; gap:0.5rem; background:#2a9d8f; color:#fff; padding:0.6rem 1.2rem; border-radius:40px; font-weight:600; text-decoration:none; margin-bottom:1rem; transition:0.2s; }
+        .back-home:hover { background:#1f7a6e; transform:translateY(-2px); }
+        h1 { font-size:2.5rem; font-weight:800; background:linear-gradient(135deg,#1f6e62,#2a9d8f); background-clip:text; -webkit-background-clip:text; color:transparent; }
+        .select-container { display:flex; justify-content:center; margin:2rem 0; }
+        .parcial-select { padding:0.8rem 1.5rem; font-size:1rem; border-radius:50px; border:1px solid #cde3dd; background:#fff; font-weight:500; color:#1e4a41; cursor:pointer; width:260px; }
+        .initial-message { text-align:center; background:#eaf6f2; padding:3rem; border-radius:32px; margin:2rem 0; }
+        .weeks-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:1.5rem; margin:2rem 0; }
+        .week-card { background:#fff; border-radius:24px; padding:1.5rem 0.8rem; text-align:center; cursor:pointer; transition:0.25s ease; box-shadow:0 8px 20px -8px rgba(0,0,0,0.1); border:1px solid rgba(42,157,143,0.3); }
+        .week-card:hover { transform:translateY(-6px); background:#fefefe; border-color:#2a9d8f; }
+        .week-card i { font-size:2.2rem; color:#2a9d8f; margin-bottom:0.5rem; }
+        .week-card h3 { font-size:1.3rem; font-weight:700; color:#1e4a41; }
+        .pdf-viewer-container { margin:2rem 0; background:#fff; border-radius:28px; padding:1rem; box-shadow:0 10px 25px rgba(0,0,0,0.1); }
+        .pdf-embed { width:100%; height:80vh; border:none; border-radius:20px; }
+        .construction-message { text-align:center; padding:2rem; background:#fff9e8; border-radius:24px; border:1px solid #ffe0a3; color:#b26b00; }
+        .construction-message img { max-width:180px; margin-bottom:1rem; }
+        .back-to-weeks { display:inline-flex; align-items:center; gap:0.5rem; background:#eef3f1; border:1px solid #cde3dd; padding:0.6rem 1.2rem; border-radius:40px; font-weight:600; color:#2a7a6b; cursor:pointer; transition:0.2s; }
+        .back-to-weeks:hover { background:#d4e9e3; }
+        .hidden { display:none; }
+        .flex-buttons { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; margin-bottom:1rem; }
+        footer { text-align:center; margin-top:3rem; font-size:0.85rem; color:#57837b; border-top:1px dashed #c5ddd5; padding-top:1.5rem; }
+        @media (max-width:650px) { .pdf-embed { height:60vh; } }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <a href="index.html" class="back-home"><i class="fas fa-arrow-left"></i> Volver al inicio</a>
+        <h1><i class="fas fa-calculator"></i> Séptimo Grado</h1>
+        <p class="subtitle">Planificación semanal por parciales</p>
+    </div>
+
+    <div class="select-container">
+        <select id="parcialSelect" class="parcial-select">
+            <option value="">-- Selecciona un parcial --</option>
+            <option value="IP">I Parcial</option>
+            <option value="IIP">II Parcial</option>
+            <option value="IIIP">III Parcial</option>
+            <option value="IVP">IV Parcial</option>
+        </select>
+    </div>
+
+    <div id="dynamicContent">
+        <div id="initialMessage" class="initial-message">
+            <i class="fas fa-folder-open" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+            <h3>Selecciona un parcial</h3>
+            <p>Elige I, II, III o IV Parcial para ver las 12 semanas de planificación.</p>
+        </div>
+
+        <div id="weeksGrid" class="weeks-grid hidden"></div>
+
+        <div id="pdfViewer" class="pdf-viewer-container hidden">
+            <div class="flex-buttons">
+                <button id="backToWeeksBtn" class="back-to-weeks"><i class="fas fa-chevron-left"></i> Regresar a semanas</button>
+            </div>
+            <div id="pdfContent"></div>
+        </div>
+    </div>
+
+    <footer>
+        <i class="fas fa-chalkboard"></i> Planificación alineada al currículo · 12 semanas por parcial<br>
+        <span style="font-size: 0.75rem;">📄 Los PDF deben estar en la carpeta "septimopdf/" con el formato: 7_S{semana}_MAT_{parcial}.pdf</span>
+    </footer>
+</div>
+
+<script>
+    const BASE_PATH = "septimopdf/";   // <--- RUTA CORREGIDA
+    const parcialSufijo = {
+        "IP": "IP",
+        "IIP": "IIP",
+        "IIIP": "IIIP",
+        "IVP": "IVP"
+    };
+
+    const parcialSelect = document.getElementById('parcialSelect');
+    const initialMessageDiv = document.getElementById('initialMessage');
+    const weeksGridDiv = document.getElementById('weeksGrid');
+    const pdfViewerDiv = document.getElementById('pdfViewer');
+    const pdfContentDiv = document.getElementById('pdfContent');
+    const backToWeeksBtn = document.getElementById('backToWeeksBtn');
+
+    let currentParcial = null;
+
+    function generateWeeks(parcialKey) {
+        weeksGridDiv.innerHTML = '';
+        for (let week = 1; week <= 12; week++) {
+            const weekCard = document.createElement('div');
+            weekCard.className = 'week-card';
+            const icon = week <= 6 ? 'fas fa-book-open' : 'fas fa-chalkboard-user';
+            weekCard.innerHTML = `
+                <i class="${icon}"></i>
+                <h3>Semana ${week}</h3>
+                <p>Plan de clase</p>
+            `;
+            weekCard.addEventListener('click', () => openPDF(parcialKey, week));
+            weeksGridDiv.appendChild(weekCard);
+        }
+    }
+
+    async function openPDF(parcialKey, weekNumber) {
+        const sufijo = parcialSufijo[parcialKey];
+        if (!sufijo) {
+            alert("Parcial no válido");
+            return;
+        }
+        const fileName = `7_S${weekNumber}_MAT_${sufijo}.pdf`;
+        const pdfUrl = BASE_PATH + fileName;
+
+        pdfContentDiv.innerHTML = `<div style="text-align:center; padding:2rem;"><i class="fas fa-spinner fa-pulse"></i> Verificando disponibilidad...</div>`;
+        initialMessageDiv.classList.add('hidden');
+        weeksGridDiv.classList.add('hidden');
+        pdfViewerDiv.classList.remove('hidden');
+
+        try {
+            const response = await fetch(pdfUrl, { method: 'HEAD' });
+            if (response.ok) {
+                const iframe = document.createElement('iframe');
+                iframe.className = 'pdf-embed';
+                iframe.src = pdfUrl;
+                pdfContentDiv.innerHTML = '';
+                pdfContentDiv.appendChild(iframe);
+            } else {
+                showConstructionMessage(weekNumber, parcialKey);
+            }
+        } catch (error) {
+            showConstructionMessage(weekNumber, parcialKey);
+        }
+    }
+
+    function showConstructionMessage(weekNumber, parcialKey) {
+        let parcialTexto = "";
+        if (parcialKey === "IP") parcialTexto = "Primer Parcial";
+        else if (parcialKey === "IIP") parcialTexto = "Segundo Parcial";
+        else if (parcialKey === "IIIP") parcialTexto = "Tercer Parcial";
+        else if (parcialKey === "IVP") parcialTexto = "Cuarto Parcial";
+
+        const imgPath = "img/error404.png";
+
+        pdfContentDiv.innerHTML = `
+            <div class="construction-message">
+                <img src="${imgPath}" alt="En construcción" onerror="this.onerror=null; this.src='https://placehold.co/400x200?text=Error+404';">
+                <h3>Semana ${weekNumber} - ${parcialTexto}</h3>
+                <p>📄 Esta planificación se encuentra <strong>en construcción</strong>.</p>
+                <p>Pronto estará disponible el material completo.</p>
+                <button class="back-to-weeks" id="innerBackBtn" style="margin-top: 1rem;"><i class="fas fa-arrow-left"></i> Regresar a semanas</button>
+            </div>
+        `;
+        const innerBtn = document.getElementById('innerBackBtn');
+        if (innerBtn) innerBtn.addEventListener('click', backToWeeks);
+    }
+
+    function backToWeeks() {
+        pdfViewerDiv.classList.add('hidden');
+        if (currentParcial) {
+            initialMessageDiv.classList.add('hidden');
+            weeksGridDiv.classList.remove('hidden');
+        } else {
+            initialMessageDiv.classList.remove('hidden');
+            weeksGridDiv.classList.add('hidden');
+        }
+        pdfContentDiv.innerHTML = '';
+    }
+
+    parcialSelect.addEventListener('change', (e) => {
+        const selected = e.target.value;
+        if (selected === "") {
+            currentParcial = null;
+            initialMessageDiv.classList.remove('hidden');
+            weeksGridDiv.classList.add('hidden');
+            pdfViewerDiv.classList.add('hidden');
+            pdfContentDiv.innerHTML = '';
+            return;
+        }
+        currentParcial = selected;
+        generateWeeks(currentParcial);
+        initialMessageDiv.classList.add('hidden');
+        weeksGridDiv.classList.remove('hidden');
+        pdfViewerDiv.classList.add('hidden');
+        pdfContentDiv.innerHTML = '';
+    });
+
+    backToWeeksBtn.addEventListener('click', backToWeeks);
+</script>
+</body>
+</html>
